@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import styled from "styled-components";
-import signinDefault from "./images/Sign-In-Large---Default.png";
-import signinHover from "./images/Sign-In-Large---Hover.png";
-import signinActive from "./images/Sign-In-Large---Active.png";
+import signinDefault from "../images/linkedin/Sign-In-Large---Default.png";
+import signinHover from "../images/linkedin/Sign-In-Large---Hover.png";
+import signinActive from "../images/linkedin/Sign-In-Large---Active.png";
 
 const Wrapper = styled.div`padding: ${({ theme }) => theme.contentPadding};`;
 
@@ -14,6 +14,8 @@ const NotificationBox = styled.div`
 
 const LinkedinButton = styled.img`
   content: url(${signinDefault});
+  cursor: pointer;
+  max-height: 35px;
 
   &:hover {
     content: url(${signinHover});
