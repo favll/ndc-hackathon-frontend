@@ -1,12 +1,14 @@
 import React, { Component } from "react";
-import styled, { ThemeProvider } from "styled-components";
+import { ThemeProvider } from "styled-components";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import getMuiTheme from "material-ui/styles/getMuiTheme";
 import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
 import NavBar from "./NavBar";
 
 const theme = {
-  contentPadding: "25px"
+  contentPadding: "25px",
+  primaryGray: "#cacccd",
+  secondaryGray: "#aaa"
 };
 
 class BasePage extends Component {

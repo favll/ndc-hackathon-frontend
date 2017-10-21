@@ -11,6 +11,7 @@ ReactDOM.render(
     <Route path="/" component={BasePage}>
       <IndexRoute component={HomePage} />
       <Route path="/home" component={HomePage} />
+      <Route path="/linkedin/callback" component={HomePage} />
     </Route>
   </Router>,
   document.getElementById("root")
