@@ -8,7 +8,8 @@ import NavBar from "./NavBar";
 const theme = {
   contentPadding: "25px",
   primaryGray: "#cacccd",
-  secondaryGray: "#aaa"
+  secondaryGray: "#aaa",
+  cartZIndex: 300
 };
 
 class BasePage extends Component {

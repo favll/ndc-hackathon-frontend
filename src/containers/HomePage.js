@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import styled from "styled-components";
 import Aux from "react-aux";
+import ContentWrapper from "../components/ContentWrapper";
 import LabeledDivider from "../components/LabeledDivider";
-import Divider from "../components/Divider";
 import DoneAll from "material-ui/svg-icons/action/done-all";
 import ChevronRight from "material-ui/svg-icons/navigation/chevron-right";
 import signinDefault from "../images/linkedin/Sign-In-Large---Default.png";
@@ -10,28 +10,13 @@ import signinHover from "../images/linkedin/Sign-In-Large---Hover.png";
 import signinActive from "../images/linkedin/Sign-In-Large---Active.png";
 import LinkedIn from "../components/LinkedIn";
 import RaisedButton from "material-ui/RaisedButton";
-import Avatar from "material-ui/Avatar";
-import Checkbox from "material-ui/Checkbox";
-import people from "../utils/people";
-import {
-  getAccessToken,
-  getPersonalInformation,
-  getPicture
-} from "../services/api";
+import { getAccessToken, getPersonalInformation } from "../services/api";
 import { LINKEDIN_CLIENT_ID } from "../utils/constants";
-
-const Wrapper = styled.div`
-  padding: ${({ theme }) => theme.contentPadding};
-  display: flex;
-  flex-direction: column;
-`;
-
-const Centered = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-`;
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+import { setProfile } from "../store/profile/actions";
+import { push } from "react-router-redux";
+import fredericlapatschek from "../images/people/Frederic Lapatschek.jpg";
 
 const NotificationBox = styled.div`
   display: flex;
@@ -52,6 +37,7 @@ const Title = styled.div`
 const Description = styled.div`
   font-size: 0.9em;
   font-weight: 300;
+  margin-bottom: 10px;
 `;
 
 const StyledLinkedIn = styled(LinkedIn)`
@@ -75,53 +61,18 @@ const StyledLinkedIn = styled(LinkedIn)`
   }
 `;
 
-const PeopleWrapper = styled.div`
-  display: flex;
-  justify-content: flex-start;
-
-  flex-wrap: nowrap;
-  overflow-x: hidden;
-`;
-
-const PersonWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin: 15px 15px;
-`;
-
-const PersonName = styled.div`
-  margin-top: 10px;
-  font-size: 0.9em;
-  font-weight: 700;
-`;
-
-const PersonOrganization = styled.div`
-  font-weight: 300;
-  font-size: 0.8em;
-`;
-
-const Person = ({ person }) => (
-  <PersonWrapper>
-    <Avatar src={person.image} size={65} />
-    <PersonName>{person.name}</PersonName>
-    <PersonOrganization>{person.organization}</PersonOrganization>
-  </PersonWrapper>
-);
-
 class HomePage extends Component {
   constructor(props) {
     super(props);
     this.callbackLinkedIn = this.callbackLinkedIn.bind(this);
     this.state = {
-      accessToken: null,
-      pictureUrl: null,
-      name: null
+      accessToken: null
     };
   }
 
   callbackLinkedIn({ code, redirectUri }) {
+    const { setProfile, changeRoute } = this.props;
+
     getAccessToken(code, redirectUri)
       .then(resp => {
         this.setState({
@@ -131,21 +82,21 @@ class HomePage extends Component {
       })
       .then(() =>
         getPersonalInformation().then(resp =>
-          this.setState({ name: `${resp.firstName} ${resp.lastName}` })
+          setProfile(resp.firstName, resp.lastName, resp.pictureUrl)
         )
       )
-      .then(() =>
-        getPicture().then(resp =>
-          this.setState({ pictureUrl: resp.pictureUrl })
-        )
-      )
-      .catch(console.log);
+      .catch(() => setProfile("Frederic", "Lapatschek", fredericlapatschek))
+      .then(() => changeRoute("/ancillary"));
   }
 
   renderLogin() {
     return (
       <Aux>
         <Title>Meet your peers</Title>
+        <Description>
+          Connect your LinkedIn Account to this booking and unlock the Helios
+          experience.
+        </Description>
         <StyledLinkedIn
           clientId={LINKEDIN_CLIENT_ID}
           callback={this.callbackLinkedIn}
@@ -161,54 +112,32 @@ class HomePage extends Component {
     );
   }
 
-  renderLoggedIn() {
-    const { pictureUrl, name } = this.state;
-
-    return (
-      <Centered>
-        <Title>Welcome, {name}!</Title>
-        <Avatar src={pictureUrl} size={80} />
-      </Centered>
-    );
-  }
+  renderLoggedIn() {}
 
   render() {
     const isLoggedIn = Boolean(this.state.accessToken);
 
     return (
-      <Wrapper>
+      <ContentWrapper>
         <NotificationBox>
           <DoneAll color="white" />
           <p>Flight Successfully Booked</p>
         </NotificationBox>
         {!isLoggedIn && this.renderLogin()}
-        {isLoggedIn && this.renderLoggedIn()}
-        <Divider />
-        <Checkbox
-          label="Add Lounge Voucher (+35 EUR)"
-          style={{ margin: "0 0 15px" }}
-          labelStyle={{ fontSize: "1em", fontWeight: "700" }}
-        />
-        <Description>
-          These travellers want to connect with interesting people in the
-          business lounge.
-        </Description>
-        <PeopleWrapper>
-          {people.map(person => <Person key={person.name} person={person} />)}
-        </PeopleWrapper>
-        <Divider />
-        <Checkbox
-          label="Choose Seating (+45 EUR)"
-          style={{ margin: "0 0 15px" }}
-          labelStyle={{ fontSize: "1em", fontWeight: "700" }}
-        />
-        <Description>
-          Spent your time in the air by having an interesting exchange with
-          these people.
-        </Description>
-      </Wrapper>
+      </ContentWrapper>
     );
   }
 }
 
-export default HomePage;
+function mapStateToProps(state) {
+  return {};
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    setProfile: bindActionCreators(setProfile, dispatch),
+    changeRoute: url => dispatch(push(url))
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(HomePage);

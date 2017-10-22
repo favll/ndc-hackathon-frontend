@@ -33,11 +33,7 @@ export function getAccessToken(code, redirectUri, clientId) {
 }
 
 export function getPersonalInformation() {
-  return linkedinRequest(`/v1/people/~?format=json`);
-}
-
-export function getPicture() {
   return linkedinRequest(
-    `/v1/people/~:(id,num-connections,picture-url)?format=json`
+    `/v1/people/~:(id,first-name,last-name,num-connections,picture-url)?format=json`
   );
 }
