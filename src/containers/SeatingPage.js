@@ -5,6 +5,11 @@ import empty from "../images/people/empty.png";
 import Avatar from "material-ui/Avatar";
 import AccountCircle from "material-ui/svg-icons/action/account-circle";
 import Done from "material-ui/svg-icons/action/done";
+import { addItem } from "../store/cart/actions";
+import { bindActionCreators } from "redux";
+import { connect } from "react-redux";
+import { push } from "react-router-redux";
+import Cart from "./Cart";
 
 const Wrapper = styled.div`
   padding: ${({ theme }) => theme.contentPadding};
@@ -71,8 +76,8 @@ const PersonOrganization = styled.div`
   font-size: 0.6em;
 `;
 
-const RecommendedSeat = () => (
-  <SeatWrapper>
+const RecommendedSeat = ({ onClick }) => (
+  <SeatWrapper onClick={onClick}>
     <Avatar
       backgroundColor="seagreen"
       icon={<Done color="white" />}
@@ -93,8 +98,8 @@ const AnonymousSeat = () => (
   </SeatWrapper>
 );
 
-const EmptySeat = () => (
-  <SeatWrapper>
+const EmptySeat = ({ onClick }) => (
+  <SeatWrapper onClick={onClick}>
     <Avatar src={empty} size={50} />
     <PersonFirstName>Choose</PersonFirstName>
     <PersonLastName>Seat</PersonLastName>
@@ -102,9 +107,9 @@ const EmptySeat = () => (
   </SeatWrapper>
 );
 
-const Seat = ({ person }) => {
-  if (!person) return <EmptySeat />;
-  if (person === "recommended") return <RecommendedSeat />;
+const Seat = ({ person, onClick }) => {
+  if (!person) return <EmptySeat onClick={onClick} />;
+  if (person === "recommended") return <RecommendedSeat onClick={onClick} />;
   if (person === "anonymous") return <AnonymousSeat />;
   return (
     <SeatWrapper>
@@ -133,19 +138,45 @@ const MiddleAisle = styled(Aisle)`
 `;
 const RightAisle = styled(Aisle)``;
 
-const SeatRow = ({ seatAssignment, rowNumber }) => (
-  <SeatRowWrapper>
-    <LeftAisle>
-      <Seat person={seatAssignment[0]} />
-      <Seat person={seatAssignment[1]} />
-    </LeftAisle>
-    <MiddleAisle>{rowNumber}</MiddleAisle>
-    <RightAisle>
-      <Seat person={seatAssignment[2]} />
-      <Seat person={seatAssignment[3]} />
-    </RightAisle>
-  </SeatRowWrapper>
-);
+const SeatRow = ({ seatAssignment, rowNumber, addItem, changeRoute }) => {
+  return (
+    <SeatRowWrapper>
+      <LeftAisle>
+        <Seat
+          onClick={() => {
+            addItem(`Seat ${rowNumber}A`, 45);
+            changeRoute("/ancillary");
+          }}
+          person={seatAssignment[0]}
+        />
+        <Seat
+          onClick={() => {
+            addItem(`Seat ${rowNumber}B`, 45);
+            changeRoute("/ancillary");
+          }}
+          person={seatAssignment[1]}
+        />
+      </LeftAisle>
+      <MiddleAisle>{rowNumber}</MiddleAisle>
+      <RightAisle>
+        <Seat
+          onClick={() => {
+            addItem(`Seat ${rowNumber}C`, 45);
+            changeRoute("/ancillary");
+          }}
+          person={seatAssignment[2]}
+        />
+        <Seat
+          onClick={() => {
+            addItem(`Seat ${rowNumber}D`, 45);
+            changeRoute("/ancillary");
+          }}
+          person={seatAssignment[3]}
+        />
+      </RightAisle>
+    </SeatRowWrapper>
+  );
+};
 
 const Letter = styled.div`
   display: flex;
@@ -182,8 +213,11 @@ class SeatingPage extends Component {
       [null, "anonymous", null, null]
     ];
 
+    const { addItem, changeRoute } = this.props;
+
     return (
       <Wrapper>
+        <Cart />
         <Title>Choose Seating (+45 EUR)</Title>
         <Description>
           Life is too short for boring conversation. Don't just choose a seat.
@@ -198,6 +232,8 @@ class SeatingPage extends Component {
               key={index}
               seatAssignment={seatAssignment}
               rowNumber={index + 1}
+              addItem={addItem}
+              changeRoute={changeRoute}
             />
           ))}
         </SeatingWrapper>
@@ -206,4 +242,11 @@ class SeatingPage extends Component {
   }
 }
 
-export default SeatingPage;
+function mapDispatchToProps(dispatch) {
+  return {
+    addItem: bindActionCreators(addItem, dispatch),
+    changeRoute: url => dispatch(push(url))
+  };
+}
+
+export default connect(null, mapDispatchToProps)(SeatingPage);

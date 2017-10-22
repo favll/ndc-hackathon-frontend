@@ -3,7 +3,7 @@ import { fromJS } from "immutable";
 
 const initialState = fromJS({
   budget: null,
-  items: [{ name: "Flight", price: 345 }]
+  items: [{ name: "Flight", price: 604 }]
 });
 
 function cartReducer(state = initialState, action) {
@@ -46,4 +46,19 @@ export function selectLastItemAdded(state) {
     .get("items")
     .last()
     .toJS();
+}
+
+export function getItems(state) {
+  return state
+    .get("cart")
+    .get("items")
+    .toJS();
+}
+
+export function isSeatingChosen(state) {
+  const items = getItems(state);
+  return items.reduce(
+    (seatingSeen, item) => seatingSeen || item.name.indexOf("Seat") !== -1,
+    false
+  );
 }

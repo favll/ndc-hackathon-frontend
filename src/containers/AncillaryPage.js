@@ -5,6 +5,7 @@ import Checkbox from "material-ui/Checkbox";
 import Dialog from "material-ui/Dialog";
 import FlatButton from "material-ui/FlatButton";
 import TextField from "material-ui/TextField";
+import RaisedButton from "material-ui/RaisedButton";
 import Cart from "./Cart";
 import ContentWrapper from "../components/ContentWrapper";
 import Divider from "../components/Divider";
@@ -13,6 +14,13 @@ import { bindActionCreators } from "redux";
 import { connect } from "react-redux";
 import { push } from "react-router-redux";
 import { setBudget, addItem, removeItem } from "../store/cart/actions";
+import { isSeatingChosen } from "../store/cart/reducers";
+import servicesfixture from "../utils/servicesfixture";
+import { GridList, GridTile } from "material-ui/GridList";
+
+import food from "../images/food.jpg";
+import visa from "../images/visa.jpg";
+import cabin from "../images/cabin.jpg";
 
 const Title = styled.div`
   font-weight: 700;
@@ -22,6 +30,7 @@ const Title = styled.div`
 const Description = styled.div`
   font-size: 0.9em;
   font-weight: 300;
+  margin-bottom: 5px;
 `;
 
 const Centered = styled.div`
@@ -73,13 +82,53 @@ const Person = ({ person }) => (
   </PersonWrapper>
 );
 
+const Spacer = styled.div`height: 100px;`;
+
+const Service = styled.div`
+  display: flex;
+  cursor: pointer;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 5px;
+
+  &:hover {
+    background-color: rgba(200, 200, 200, 0.4);
+  }
+`;
+
+const ServiceName = styled.div`
+  font-weight: 300;
+  font-size: 0.9em;
+`;
+
+const ServicePrice = styled.div``;
+
 class AncillaryPage extends Component {
   constructor(props) {
     super(props);
     this.state = {
       budget: "",
-      budgetError: false
+      budgetError: false,
+      parsedServices: null
     };
+  }
+
+  componentDidMount() {
+    const data = new window.DOMParser().parseFromString(
+      servicesfixture,
+      "text/xml"
+    );
+
+    const services = data.getElementsByTagName("Service");
+    console.log(services);
+    const parsedServices = Array.prototype.map.call(services, service => {
+      const name = service.getElementsByTagName("Name")[0].innerHTML;
+      const price = Number(service.getElementsByTagName("Total")[0].innerHTML);
+      return { name, price };
+    });
+    console.log(parsedServices);
+
+    this.setState({ parsedServices });
   }
 
   handleBudgetChange = (event, value) =>
@@ -133,14 +182,74 @@ class AncillaryPage extends Component {
     );
   }
 
+  renderPriorityServices(services) {
+    const { addItem } = this.props;
+    // return services.map((service, index) => (
+    //   <Service
+    //     key={`prio${index}`}
+    //     onClick={() => addItem(service.name, service.price)}
+    //   >
+    //     <ServiceName>{service.name}</ServiceName>
+    //     <ServicePrice>{service.price} EUR</ServicePrice>
+    //   </Service>
+    // ));
+
+    const imageMap = {
+      "FOOD AT THE GATE": food,
+      "VISA INFORMATION": visa,
+      "CABIN UPGRADE": cabin
+    };
+
+    return (
+      <GridList cellHeight={100} cols={1}>
+        {services.map(service => (
+          <GridTile
+            style={{ cursor: "pointer" }}
+            onClick={() => addItem(service.name, service.price)}
+            key={service.name}
+            title={`${service.name} - ${service.price} EUR`}
+            titleBackground="linear-gradient(to top, rgba(0,0,0,0.7) 0%,rgba(0,0,0,0.3) 70%,rgba(0,0,0,0) 100%)"
+          >
+            <img src={imageMap[service.name]} />
+          </GridTile>
+        ))}
+      </GridList>
+    );
+  }
+
+  renderServices(services) {
+    const { addItem } = this.props;
+    return services.map((service, index) => (
+      <Service key={index} onClick={() => addItem(service.name, service.price)}>
+        <ServiceName>{service.name}</ServiceName>
+        <ServicePrice>{service.price} EUR</ServicePrice>
+      </Service>
+    ));
+  }
+
   render() {
     const {
       budget,
       firstName,
       lastName,
       profilePicture,
-      changeRoute
+      changeRoute,
+      isSeatingChosen
     } = this.props;
+    let { parsedServices } = this.state;
+    const servicesLoaded = Boolean(parsedServices);
+    parsedServices = parsedServices || [];
+
+    const priority = ["FOOD AT THE GATE", "VISA INFORMATION", "CABIN UPGRADE"];
+    const isPriority = service =>
+      (service.name === priority[0]) |
+      (service.name === priority[1]) |
+      (service.name === priority[2]);
+
+    const prioServices = parsedServices.filter(service => isPriority(service));
+    const noPrioServices = parsedServices.filter(
+      service => !isPriority(service)
+    );
     return (
       <ContentWrapper>
         {!budget && this.renderBudgetDialog()}
@@ -169,6 +278,7 @@ class AncillaryPage extends Component {
         </PeopleWrapper>
         <Divider />
         <Checkbox
+          checked={isSeatingChosen}
           label="Choose Seating (+45 EUR)"
           style={{ margin: "0 0 15px" }}
           labelStyle={{ fontSize: "1em", fontWeight: "700" }}
@@ -178,6 +288,23 @@ class AncillaryPage extends Component {
           Spent your time in the air by having an interesting exchange with
           these people.
         </Description>
+        <Divider />
+        <Title>Services Popular with your Peer Group</Title>
+        <Description>
+          Travellers working in the airline industry love to add these services
+          to their booking. Take a look!
+        </Description>
+        {servicesLoaded && this.renderPriorityServices(prioServices)}
+        <Divider />
+        <Title>Other Services</Title>
+        {servicesLoaded && this.renderServices(noPrioServices)}
+        <Divider />
+        <RaisedButton
+          primary
+          label="Finalize Order"
+          onClick={() => changeRoute("/checkout")}
+        />
+        <Spacer />
       </ContentWrapper>
     );
   }
@@ -189,7 +316,8 @@ function mapStateToProps(state) {
     budget: state.get("cart").get("budget"),
     firstName: profileState.get("firstName"),
     lastName: profileState.get("lastName"),
-    profilePicture: profileState.get("profilePicture")
+    profilePicture: profileState.get("profilePicture"),
+    isSeatingChosen: isSeatingChosen(state)
   };
 }
 

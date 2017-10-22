@@ -9,6 +9,7 @@ import signinDefault from "../images/linkedin/Sign-In-Large---Default.png";
 import signinHover from "../images/linkedin/Sign-In-Large---Hover.png";
 import signinActive from "../images/linkedin/Sign-In-Large---Active.png";
 import LinkedIn from "../components/LinkedIn";
+import Result from "../components/Result";
 import RaisedButton from "material-ui/RaisedButton";
 import { getAccessToken, getPersonalInformation } from "../services/api";
 import { LINKEDIN_CLIENT_ID } from "../utils/constants";
@@ -20,13 +21,26 @@ import fredericlapatschek from "../images/people/Frederic Lapatschek.jpg";
 
 const NotificationBox = styled.div`
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   background: #5bc0de;
   color: white;
   padding: 20px;
+`;
+
+const TopLine = styled.div`
+  display: flex;
+  justify-content: center;
+  align-item: center;
   & > p {
     margin-left: 15px;
   }
+`;
+const BottomLine = styled.div`
+  display: flex;
+  justify-content: center;
+  font-size: 0.8em;
+  margin-top: 10px;
+  text-align center;
 `;
 
 const Title = styled.div`
@@ -61,7 +75,7 @@ const StyledLinkedIn = styled(LinkedIn)`
   }
 `;
 
-class HomePage extends Component {
+class LinkedInPage extends Component {
   constructor(props) {
     super(props);
     this.callbackLinkedIn = this.callbackLinkedIn.bind(this);
@@ -120,9 +134,20 @@ class HomePage extends Component {
     return (
       <ContentWrapper>
         <NotificationBox>
-          <DoneAll color="white" />
-          <p>Flight Successfully Booked</p>
+          <TopLine>
+            <DoneAll color="white" />
+            <p>We have reserved a seat on the following flight for you.</p>
+          </TopLine>
         </NotificationBox>
+        <Result
+          sliceOnly
+          fareClass="Economy"
+          origin="CDG"
+          destination="RVN"
+          departure="08:30"
+          arrival="12:00"
+          price="604"
+        />
         {!isLoggedIn && this.renderLogin()}
       </ContentWrapper>
     );
@@ -140,4 +165,4 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(HomePage);
+export default connect(mapStateToProps, mapDispatchToProps)(LinkedInPage);
