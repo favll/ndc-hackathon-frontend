@@ -1,2 +1,6 @@
 # NDC Hackathon Paris 2017
-The best app to ever be hacked together.
+Get recommendations for ancillary products and services based on your LinkedIn profile and past travel data.
+
+## We won...
+- 🏆 Finnair API Prize
+- 🏆 IATA Secondary Prize
